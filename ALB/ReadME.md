@@ -11,7 +11,7 @@
 
 Created using [App Diagram](https://app.diagrams.net/)
 <div align="center">  
-  <img alt="Application Architechture" src="./image/image.png"/>
+  <img alt="Application Architechture" src="./image/ALB.png"/>
 </div>
 
 ## How to run?
