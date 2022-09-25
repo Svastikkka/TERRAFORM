@@ -3,12 +3,8 @@ resource "aws_wafv2_web_acl" "web_acl" {
   description = "Testing WAF"
   scope       = var.web_acl_scope
   tags = {
-    Cost             = "${var.cost_tag}"
     Environment      = "${var.environment}"
-    VantaUserData    = var.vanta_user_data
-    VantaOwner       = "${var.vanta_owner_email}"
-    VantaNonProd     = var.vanta_non_prod
-    VantaDescription = "Web Application Firewall Rules for Testing"
+    Email = "${var.owner_email}"
   }
 
   default_action {
@@ -92,31 +88,26 @@ resource "aws_wafv2_web_acl" "web_acl" {
   }
 
   rule {
-    name     = var.auth_rule_name
+    name     = var.sql_rule_name
     priority = 2
-    action {
-      allow {}
+    override_action {
+      count {}
     }
 
     statement {
-      byte_match_statement {
-        search_string         = "/auth"
-        positional_constraint = "STARTS_WITH"
-        text_transformation {
-          priority = 0
-          type     = "NONE"
-        }
-        field_to_match {
-          uri_path {}
+      managed_rule_group_statement {
+        vendor_name = "AWS"
+        name = "AWSManagedRulesSQLiRuleSet"
+        excluded_rule {
+            name =  "SQLiExtendedPatterns_BODY"
         }
       }
     }
-
     visibility_config {
       sampled_requests_enabled   = true
       cloudwatch_metrics_enabled = true
-      metric_name                = "Auth-testing-allowed-paths"
-    }
+      metric_name                = "AWS-AWSManagedRulesSQLiRuleSet"
+    } 
   }
 
   visibility_config {
@@ -140,14 +131,5 @@ data "aws_lb" "alb" {
 
 resource "aws_wafv2_web_acl_association" "resources" {
   resource_arn = data.aws_lb.alb.arn
-  web_acl_arn  = aws_wafv2_web_acl.web_acl.arn
-}
-
-data "aws_lb" "auth_alb" {
-  name = var.auth_alb
-}
-
-resource "aws_wafv2_web_acl_association" "auth_resources" {
-  resource_arn = data.aws_lb.auth_alb.arn
   web_acl_arn  = aws_wafv2_web_acl.web_acl.arn
 }
