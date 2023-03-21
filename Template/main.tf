@@ -1,4 +1,4 @@
-resource "aws_launch_template" "your_eks_launch_template" {
+resource "aws_launch_template" "ec2_launch_template" {
   name = "fabric-dev-template"
 
   # vpc_security_group_ids = [var.your_security_group.id, aws_eks_cluster.your-eks-cluster.vpc_config[0].cluster_security_group_id]
