@@ -1,0 +1,17 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
+--==MYBOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+set -ex
+/etc/eks/bootstrap.sh ${cluster_name} \
+  --b64-cluster-ca ${certificate} \
+  --apiserver-endpoint ${cluster_endpoint} \
+  --dns-cluster-ip ${cluster_ip} \
+  --container-runtime dockerd \
+  --kubelet-extra-args '--max-pods=10' \
+  --use-max-pods false
+
+--==MYBOUNDARY==--
