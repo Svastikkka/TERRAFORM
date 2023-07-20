@@ -43,13 +43,13 @@ variable "rule_name2" {
 }
 variable "alb" {
   type    = string
-  default = "oauth-alb"
+  default = "fabric-sso"
 }
 
 variable "vpn_ipsets_name" {
   type = string
   description = "name for the vpn sets used for WAF rule"
-  default = "fabric-uat-vpn-ipset"
+  default = "fabric-vpn-ipset"
 }
 
 variable "vpn_ipsets" {
