@@ -1,19 +1,16 @@
 data "terraform_remote_state" "db" {
   backend = "s3"
   config = {
-    bucket = "fabric-iacv2"
+    bucket = "fabric-iac"
     key    = "vpc/terraform.tfstate"
     region = "us-east-1"
   }
-}
-data "aws_iam_roles" "fargate_profile_roles" {
-  name_regex = "fargate-profile-.*"
 }
 
 module "eks-cluster" {
   source          = "terraform-aws-modules/eks/aws"
   version         = "19.12.0"
-  cluster_name    = "${var.eks_cluster_name}-${var.environment}"
+  cluster_name    = "${var.eks_cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}"
   cluster_version = var.eks_cluster_version
   subnet_ids      = flatten([data.terraform_remote_state.db.outputs.private_subnets])
   # cluster_enabled_log_types     = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
@@ -21,8 +18,9 @@ module "eks-cluster" {
   create_cloudwatch_log_group = false
   tags = {
     Name        = var.eks_cluster_name
+    Cost        = var.cost_tag
     Environment = var.environment
-    "karpenter.sh/discovery"  = "fabric-dev"
+    "karpenter.sh/discovery"  = "${var.eks_cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}"
   }
 
   vpc_id = data.terraform_remote_state.db.outputs.vpc_id
@@ -37,7 +35,6 @@ module "eks-cluster" {
   cluster_encryption_config = {}
   # create_aws_auth_configmap = true
   # manage_aws_auth_configmap = true
-  # aws_auth_fargate_profile_pod_execution_role_arns = [for role in data.aws_iam_roles.fargate_profile_roles.arns : role]
   # aws_auth_roles = var.aws_kube_roles_mapping
   # aws_auth_users = var.aws_kube_users_mapping
 }
@@ -58,6 +55,7 @@ module "fargate-profile" {
 
   tags = {
     Name        = var.eks_cluster_name
+    Cost        = var.cost_tag
     Environment = var.environment
   }
 }
@@ -78,8 +76,8 @@ module "fabric-services" {
   vpc_security_group_ids            = [module.eks-cluster.cluster_security_group_id]
 
   min_size     = 1
-  max_size     = 2
-  desired_size = 1
+  max_size     = 20
+  desired_size = 10
 
   instance_types     = ["t3.large"]
   capacity_type      = "ON_DEMAND"
@@ -89,8 +87,9 @@ module "fabric-services" {
 
   tags = {
     Name        = var.eks_cluster_name
+    Cost        = var.cost_tag
     Environment = var.environment
-    "karpenter.sh/discovery"  = "fabric-dev"
+    "karpenter.sh/discovery"  = module.eks-cluster.cluster_name
   }
 }
 
@@ -101,7 +100,6 @@ module "fabric-apps" {
   name            = "${var.eks_cluster_name}-apps"
   cluster_name    = module.eks-cluster.cluster_name
   cluster_version = module.eks-cluster.cluster_version
-
   create_iam_role = false
   iam_role_arn    = aws_iam_role.nodegroup_role.arn
 
@@ -111,8 +109,8 @@ module "fabric-apps" {
   vpc_security_group_ids            = [module.eks-cluster.cluster_security_group_id]
 
   min_size     = 1
-  max_size     = 2
-  desired_size = 1
+  max_size     = 4
+  desired_size = 2
 
   instance_types     = ["t3.large"]
   capacity_type      = "ON_DEMAND"
@@ -122,22 +120,24 @@ module "fabric-apps" {
 
   tags = {
     Name        = var.eks_cluster_name
+    Cost        = var.cost_tag
     Environment = var.environment
+    "karpenter.sh/discovery"  = module.eks-cluster.cluster_name
   }
 }
 
 # Create Namespace in EKS cluster.
-
 resource "kubernetes_namespace" "fabric-namespaces" {
-  count = length(var.kubernetes_namespaces)
+  for_each = { for ns in var.kubernetes_namespaces : ns => ns }
   metadata {
     annotations = {
-      name = element(var.kubernetes_namespaces, count.index)
+      name = each.value
     }
     labels = {
+      Cost        = var.cost_tag
       Environment = var.environment
     }
-    name = element(var.kubernetes_namespaces, count.index)
+    name = each.value
   }
   depends_on = [module.eks-cluster]
 }
@@ -153,6 +153,7 @@ resource "aws_eks_addon" "addons" {
 
   tags = {
     Name        = var.addons[count.index].tag_name
+    Cost        = var.cost_tag
     Environment = var.environment
   }
 }
@@ -278,23 +279,6 @@ resource "aws_iam_role_policy" "KarpenterControllerRole-iam-role-policy-attachme
   role   = aws_iam_role.KarpenterControllerRole.name
 }
 
-# resource "kubernetes_service_account" "karpentor-service-account" {
-#   metadata {
-#     name      = "karpenter"
-#     namespace = "karpenter"
-#     labels = {
-#       "app.kubernetes.io/name" = "karpenter"
-#     }
-#     annotations = {
-#       # This annotation is only used when running on EKS which can use IAM roles for service accounts.
-#       "eks.amazonaws.com/role-arn" = aws_iam_role.KarpenterControllerRole.arn
-#     }
-#   }
-#   depends_on = [
-#     aws_iam_role_policy.KarpenterControllerRole-iam-role-policy-attachment
-#   ]
-# }
-
 # Node Group
 data "aws_iam_policy_document" "nodegroup_trust_policy" {
   statement {
@@ -370,18 +354,38 @@ resource "kubernetes_config_map" "aws_auth" {
       - groups:
         - system:bootstrappers
         - system:nodes
-        rolearn: arn:aws:iam::988847430543:role/KarpenterInstanceNodeRole
+        rolearn: arn:aws:iam::406059358747:role/KarpenterInstanceNodeRole
         username: system:node:{{EC2PrivateDNSName}}
       - groups:
-        - test_aws_admin_access
-        rolearn: arn:aws:iam::988847430543:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_005b7f535a4f560c
-        username: AWSReservedSSO_AdministratorAccess_005b7f535a4f560c
+        - developer
+        rolearn: arn:aws:iam::406059358747:role/AWSReservedSSO_SwifTalkEngineerAccess_da53d1896638677f
+        username: AWSReservedSSO_SwifTalkEngineerAccess_da53d1896638677f
+      - groups:
+        - reader
+        rolearn: arn:aws:iam::406059358747:role/AWSReservedSSO_SwifTalkInternAccess_5b30898d87482d0a
+        username: AWSReservedSSO_SwifTalkInternAccess_5b30898d87482d0a
+      - groups:
+        - system:masters
+        rolearn: arn:aws:iam::406059358747:role/AWSReservedSSO_Admin_Restricted_04835747ed2394fc
+        username: AWSReservedSSO_Admin_Restricted_04835747ed2394fc
+      - groups:
+        - system:masters
+        rolearn: arn:aws:iam::406059358747:role/AWSReservedSSO_AdministratorAccess_f19c4fdc17ea2ad6
+        username: AWSReservedSSO_AdministratorAccess_f19c4fdc17ea2ad6
+      - groups:
+        - developers-group
+        rolearn: arn:aws:iam::406059358747:role/AWSReservedSSO_DevelopersAccessFabricDev_a487c524bfcfe1f2
+        username: AWSReservedSSO_DevelopersAccessFabricDev_a487c524bfcfe1f2
+      - groups:
+        - fabric-developers-group
+        rolearn: arn:aws:iam::406059358747:role/AWSReservedSSO_FabricDevelopersAccess_c0be6497014edf3d
+        username: AWSReservedSSO_FabricDevelopersAccess_c0be6497014edf3d
     EOF
     mapUsers = <<EOF
       - groups:
         - developer
-        rolearn: arn:aws:iam::988847430543:user/swiftalk-eks-deployer
-        username: swiftalk-eks-deployers
+        userarn: arn:aws:iam::406059358747:user/swiftalk-eks-deployer
+        username: swiftalk-eks-deployer
     EOF
   }
   depends_on = [

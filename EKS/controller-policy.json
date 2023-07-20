@@ -18,7 +18,8 @@
           "ec2:CreateLaunchTemplate",
           "ec2:CreateFleet",
           "ec2:DescribeSpotPriceHistory",
-          "pricing:GetProducts"        ],
+          "pricing:GetProducts"
+        ],
         "Effect": "Allow",
         "Resource": "*",
         "Sid": "Karpenter"
@@ -37,7 +38,7 @@
       {
           "Effect": "Allow",
           "Action": "eks:DescribeCluster",
-          "Resource": "arn:aws:eks:us-east-1:988847430543:cluster/fabric-dev",
+          "Resource": "arn:aws:eks:us-east-1:406059358747:cluster/fabric-dev-v1",
           "Sid": "EKSClusterEndpointLookup"
       }
     ],

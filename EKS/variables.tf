@@ -46,6 +46,12 @@ variable "eks_cluster_version" {
   default     = "1.26"
 }
 
+variable "eks_cluster_deployment_version" {
+  type        = string
+  description = "EKS Cluster Version"
+  default     = "v1"
+}
+
 variable "cost_tag" {
   type        = string
   description = "AWS cost tag for reporting"
@@ -100,72 +106,6 @@ variable "efs_service_account_name" {
   default     = "efs-serviceaccount"
 }
 
-# variable "mongodbcr_replicas" {
-#   type        = number
-#   description = "No of Mongodb CR replicas"
-#   default     = 3
-# }
-
-# variable "nifi_replicas" {
-#   type        = number
-#   description = "No of Nifi replicas"
-#   default     = 2
-# }
-
-# variable "mysqlcr_replicas" {
-#   type        = number
-#   description = "No of MySQL replicas"
-#   default     = 2
-# }
-
-# variable "vault_replicas" {
-#   type        = number
-#   description = "No of Vault replicas"
-#   default     = 3
-# }
-
-# variable "graphite_replicas" {
-#   type        = number
-#   description = "No of graphite replicas"
-#   default     = 1
-# }
-
-# variable "jaeger_replicas" {
-#   type        = number
-#   description = "No of jaeger replicas"
-#   default     = 1
-# }
-
-# variable "nh44_replicas" {
-#   type        = number
-#   description = "No of NH44 replicas"
-#   default     = 3
-# }
-
-# variable "kafka_replicas" {
-#   type        = number
-#   description = "No of kafka replicas"
-#   default     = 3
-# }
-
-# variable "nimble_solr_replicas" {
-#   type        = number
-#   description = "No of Nimble solr server replicas"
-#   default     = 3
-# }
-
-# variable "nimbledev_slave_replicas" {
-#   type        = number
-#   description = "No of Nimble dev slave replicas"
-#   default     = 2
-# }
-
-# variable "nimbleuat_slave_replicas" {
-#   type        = number
-#   description = "No of Nimble uat slave replicas"
-#   default     = 2
-# }
-
 variable "cluster_allowed_cidrs" {
   type        = list(string)
   description = "IP CIDRs that are allowed access to the cluster"
@@ -179,28 +119,42 @@ variable "aws_kube_roles_mapping" {
     groups   = list(string)
   }))
   description = "Additional IAM roles to add to the aws-auth configmap."
-  default = [
+  default = [{
+    groups   = ["developer"]
+    rolearn  = "arn:aws:iam::406059358747:role/AWSReservedSSO_SwifTalkEngineerAccess_da53d1896638677f"
+    username = "AWSReservedSSO_SwifTalkEngineerAccess_da53d1896638677f"
+    },
+    {
+      groups   = ["reader"]
+      rolearn  = "arn:aws:iam::406059358747:role/AWSReservedSSO_SwifTalkInternAccess_5b30898d87482d0a"
+      username = "AWSReservedSSO_SwifTalkInternAccess_5b30898d87482d0a"
+    },
+    {
+      groups   = ["system:masters"]
+      rolearn  = "arn:aws:iam::406059358747:role/AWSReservedSSO_Admin_Restricted_04835747ed2394fc"
+      username = "AWSReservedSSO_Admin_Restricted_04835747ed2394fc"
+    },
     {
       groups   = ["system:bootstrappers","system:nodes"]
-      rolearn  = "arn:aws:iam::988847430543:role/Fabric-NodeGroup-Role"
+      rolearn  = "arn:aws:iam::406059358747:role/eks-fabric-dev-node-group"
       username = "system:node:{{EC2PrivateDNSName}}"
       
     },
     {
+      groups   = ["developers-group"]
+      rolearn  = "arn:aws:iam::406059358747:role/AWSReservedSSO_DevelopersAccessFabricDev_a487c524bfcfe1f2"
+      username = "AWSReservedSSO_DevelopersAccessFabricDev_a487c524bfcfe1f2"
+    },
+    {
+      groups   = ["fabric-developers-group"]
+      rolearn  = "arn:aws:iam::406059358747:role/AWSReservedSSO_FabricDevelopersAccess_c0be6497014edf3d"
+      username = "AWSReservedSSO_FabricDevelopersAccess_c0be6497014edf3d"
+    },
+    {
       groups   = ["system:bootstrappers","system:nodes"]
-      rolearn  = "arn:aws:iam::988847430543:role/KarpenterInstanceNodeRole"
+      rolearn  = "arn:aws:iam::406059358747:role/KarpenterInstanceNodeRole"
       username = "system:node:{{EC2PrivateDNSName}}"
       
-    },
-    {
-      groups   = ["test_aws_admin_access"]
-      rolearn  = "arn:aws:iam::988847430543:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_005b7f535a4f560c"
-      username = "AWSReservedSSO_AdministratorAccess_005b7f535a4f560c"
-    },
-    {
-      groups   = ["system:bootstrappers", "system:nodes", "system:node-proxier"]
-      rolearn  = "arn:aws:iam::988847430543:role/Fabric-Fargate-Role"
-      username = "system:node:{{SessionName}}"
     }
   ]
 }
@@ -219,101 +173,50 @@ variable "aws_kube_users_mapping" {
   }]
 }
 
-# variable "fabric_profile_name" {
-#   type        = string
-#   description = "Profile name for running Fabric Components"
-#   default     = "alb-profile"
-# }
 
-# variable "alb_ingress_policy_name" {
-#   type        = string
-#   description = "IAM Policy for AWS Load Balancer Controller"
-#   default     = "SwifTalkAWSLoadBalancerControllerIAMPolicy"
-# }
+variable "reader_role_binding" {
+  type = list(object({
+    group_name = string
+    namespace  = string
+  }))
+  default = [{
+    group_name = "reader",
+    namespace  = "dev",
+    },
+    {
+      group_name = "reader",
+      namespace  = "qa",
+    },
+    {
+      group_name = "reader",
+      namespace  = "uat",
+  }]
+  description = "List of reader role group mapping"
+}
 
-# variable "remote_backend" {
-#   type = string
-#   default = "fabric-iac"
-# }
-
-# variable "cluster_log_retention_days" {
-#   type    = number
-#   default = 7
-# }
-
-# variable "app_profile_selectors" {
-#   type = list(object({
-#     namespace = string
-#   }))
-#   default = [
-#     {
-#       namespace = "dev"
-#     },
-#     {
-#       namespace = "qa"
-#     },
-#     {
-#       namespace = "uat"
-#     },
-#     {
-#       namespace = "saas-test"
-#     }
-#   ]
-# }
-
-# variable "accountId" {
-#   type    = string
-#   default = "127311923021"
-# }
-
-# variable "subOrgAccountId" {
-#   type    = string
-#   default = "406059358747"
-# }
-
-# variable "reader_role_binding" {
-#   type = list(object({
-#     group_name = string
-#     namespace  = string
-#   }))
-#   default = [{
-#     group_name = "reader",
-#     namespace  = "dev",
-#     },
-#     {
-#       group_name = "reader",
-#       namespace  = "qa",
-#     },
-#     {
-#       group_name = "reader",
-#       namespace  = "uat",
-#   }]
-#   description = "List of reader role group mapping"
-# }
-
-# variable "dev_admin_role_binding" {
-#   type = list(object({
-#     group_name = string
-#     namespace  = string
-#   }))
-#   default = [{
-#     group_name = "developer",
-#     namespace  = "dev",
-#     },
-#     {
-#       group_name = "developer",
-#       namespace  = "qa",
-#     },
-#     {
-#       group_name = "developer",
-#       namespace  = "uat",
-#     },
-#     {
-#       group_name = "developer",
-#       namespace  = "vault",
-#   }]
-#   description = "List of dev admin role group mapping"
-# }
+variable "dev_admin_role_binding" {
+  type = list(object({
+    group_name = string
+    namespace  = string
+  }))
+  default = [{
+    group_name = "developer",
+    namespace  = "dev",
+    },
+    {
+      group_name = "developer",
+      namespace  = "qa",
+    },
+    {
+      group_name = "developer",
+      namespace  = "uat",
+    },
+    {
+      group_name = "developer",
+      namespace  = "vault",
+  }]
+  description = "List of dev admin role group mapping"
+}
 
 variable "kube_namespace" {
   type    = string
@@ -353,87 +256,84 @@ variable "kube_namespace" {
 #   ]*/
 # }
 
-# variable "rbac_developers_group_name" {
-#   type    = string
-#   default = "developers-group"
-# }
+variable "rbac_developers_group_name" {
+  type    = string
+  default = "developers-group"
+}
 
-# variable "rbac_fabric_developers_group_name" {
-#   type    = string
-#   default = "fabric-developers-group"
-# }
+variable "rbac_fabric_developers_group_name" {
+  type    = string
+  default = "fabric-developers-group"
+}
 
-# variable "rbac_developers_role_namespaces" {
-#   type = list(object({
-#     namespace = string
-#   }))
-#   description = "List of namespaces for developers role"
-#   default = [
-#     {
-#       namespace = "dev"
-#     },
-#     {
-#       namespace = "qa"
-#     },
-#     {
-#       namespace = "standalone"
-#     }
-#   ]
-# }
+variable "rbac_developers_role_namespaces" {
+  type = list(object({
+    namespace = string
+  }))
+  description = "List of namespaces for developers role"
+  default = [
+    {
+      namespace = "dev"
+    },
+    {
+      namespace = "qa"
+    },
+    {
+      namespace = "standalone"
+    }
+  ]
+}
 
-# variable "rbac_fabric_developers_role_namespaces" {
-#   type = list(object({
-#     namespace = string
-#   }))
-#   description = "List of namespaces for developers role"
-#   default = [
-#     {
-#       namespace = "dev"
-#     },
-#     {
-#       namespace = "qa"
-#     },
-#     {
-#       namespace = "standalone"
-#     },
-#     {
-#       namespace = "uat"
-#     },
-#     {
-#       namespace = "cache"
-#     },
-#     {
-#       namespace = "vault"
-#     },
-#     {
-#       namespace = "mongo"
-#     },
-#     {
-#       namespace = "mongocr"
-#     },
-#     {
-#       namespace = "mysql"
-#     },
-#     {
-#       namespace = "nh44"
-#     },
-#     {
-#       namespace = "indexing"
-#     },
-#     {
-#       namespace = "observability"
-#     },
-#     {
-#       namespace = "config"
-#     },
-#     {
-#       namespace = "devops"
-#     },
-#     {
-#       namespace = "oauth"
-#     }
-#   ]
-# }
+variable "rbac_fabric_developers_role_namespaces" {
+  type = list(object({
+    namespace = string
+  }))
+  description = "List of namespaces for developers role"
+  default = [
+    {
+      namespace = "dev"
+    },
+    {
+      namespace = "qa"
+    },
+    {
+      namespace = "standalone"
+    },
+    {
+      namespace = "uat"
+    },
+    {
+      namespace = "cache"
+    },
+    {
+      namespace = "vault"
+    },
+    {
+      namespace = "mongo"
+    },
+    {
+      namespace = "mongocr"
+    },
+    {
+      namespace = "mysql"
+    },
+    {
+      namespace = "nh44"
+    },
+    {
+      namespace = "indexing"
+    },
+    {
+      namespace = "observability"
+    },
+    {
+      namespace = "config"
+    },
+    {
+      namespace = "oauth"
+    }
+  ]
+}
 
 # Fargate profile to be created
 variable "fargate_profiles_list" {
@@ -450,7 +350,7 @@ variable "fargate_profiles_list" {
       {
         namespace = "qa"
         labels = {
-          "app.kubernetes.io/environemnt" = "qa"
+          "app.kubernetes.io/environment" = "qa"
         }
       },
       {
@@ -468,7 +368,7 @@ variable "fargate_profiles_list" {
       {
         namespace = "karpenter"
         labels = {
-          "app.kubernetes.io/environment" = "karpenter"
+          "app.kubernetes.io/environemnt" = "karpenter"
         }
       }
     ]
