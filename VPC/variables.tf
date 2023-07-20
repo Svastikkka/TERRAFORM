@@ -34,6 +34,11 @@ variable "cluster_name" {
   default     = "fabric"
 }
 
+variable "eks_cluster_deployment_version" {
+  type        = string
+  description = "EKS Cluster Version"
+  default     = "v1"
+}
 # variable "vpc_name" {
 #   type        = string
 #   description = "Name tag for VPC"
@@ -54,7 +59,7 @@ variable "public_subnets_cidr" {
 variable "private_subnets_cidr" {
   type        = list(string)
   description = "private subnets cidr blocks range"
-  default     = ["10.13.1.0/24", "10.13.3.0/24", "10.13.5.0/24"]
+  default     = ["10.13.1.0/24", "10.13.3.0/24", "10.13.5.0/24","10.13.7.0/24", "10.13.9.0/24", "10.13.11.0/24"]
 }
 
 variable "environment" {

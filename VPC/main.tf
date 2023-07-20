@@ -11,19 +11,20 @@ module "vpc" {
   enable_dns_hostnames = true
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/${var.cluster_name}-${var.environment}" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}" = "shared"
     "kubernetes.io/role/elb"                                       = "1"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/${var.cluster_name}-${var.environment}" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}" = "shared"
     "kubernetes.io/role/internal-elb"                              = "1"
+    "karpenter.sh/discovery"                                       = "${var.cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}"
   }
 
   tags = {
-    "kubernetes.io/cluster/${var.cluster_name}-${var.environment}" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}" = "shared"
     Environment                                                    = var.environment
-    "karpenter.sh/discovery"                                       = "fabric-dev"
+    Cost                                                           = var.cost_tag
   }
 
 }
@@ -53,8 +54,9 @@ module "vpc-security-group" {
     protocol    = -1
   }]
   tags = {
-    Name                      = "${var.cluster_name}-security-group"
-    Environment               = var.environment
-    "karpenter.sh/discovery"  = "fabric-dev"
+    Name        = "${var.cluster_name}-security-group"
+    Environment = var.environment
+    Cost        = var.cost_tag
+    "karpenter.sh/discovery"  = "${var.cluster_name}-${var.environment}-${var.eks_cluster_deployment_version}"
   }
 }
