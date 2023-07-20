@@ -239,32 +239,33 @@ resource "aws_efs_backup_policy" "policy" {
 }
 
 resource "aws_efs_mount_target" "eks-efs-private-subnet-mnt-target" {
-  count           = length(data.terraform_remote_state.db.outputs.private_subnets)
+  # count           = length(data.terraform_remote_state.db.outputs.private_subnets)
+  count           = 3
   file_system_id  = aws_efs_file_system.eks-efs.id
   subnet_id       = data.terraform_remote_state.db.outputs.private_subnets[count.index]
   security_groups = [aws_security_group.efs-access-security-group.id]
 }
 
-resource "aws_efs_access_point" "eks-efs-mongo-access-point" {
-  file_system_id = aws_efs_file_system.eks-efs.id
-  root_directory {
-    path = "/mongo"
-    creation_info {
-      owner_gid   = 999
-      owner_uid   = 999
-      permissions = 755
-    }
-  }
-  posix_user {
-    gid = 999
-    uid = 999
-  }
-  tags = {
-    Name        = "eks-efs-${var.kube_namespace}-mongo-access-point"
-    Cost        = var.cost_tag
-    Environment = var.environment
-  }
-}
+# resource "aws_efs_access_point" "eks-efs-mongo-access-point" {
+#   file_system_id = aws_efs_file_system.eks-efs.id
+#   root_directory {
+#     path = "/mongo"
+#     creation_info {
+#       owner_gid   = 999
+#       owner_uid   = 999
+#       permissions = 755
+#     }
+#   }
+#   posix_user {
+#     gid = 999
+#     uid = 999
+#   }
+#   tags = {
+#     Name        = "eks-efs-${var.kube_namespace}-mongo-access-point"
+#     Cost        = var.cost_tag
+#     Environment = var.environment
+#   }
+# }
 
 resource "aws_efs_access_point" "eks-efs-kafka-access-point" {
   file_system_id = aws_efs_file_system.eks-efs.id
@@ -801,6 +802,92 @@ resource "aws_efs_access_point" "eks-efs-skbot-logs-access-point" {
   }
   tags = {
     Name        = "eks-efs-skbot-logs-access-point"
+    Cost        = var.cost_tag
+    Environment = var.environment
+  }
+}
+
+# Nimble UAT MSSQL DB
+resource "aws_efs_access_point" "eks-efs-uat-nimble-mssqldb-data-access-point" {
+  file_system_id = aws_efs_file_system.eks-efs.id
+  root_directory {
+    path = "/nimble${var.uat_kube_namespace}/mssqldb/data"
+    creation_info {
+      owner_gid   = 999
+      owner_uid   = 999
+      permissions = 755
+    }
+  }
+  posix_user {
+    gid = 999
+    uid = 999
+  }
+  tags = {
+    Name        = "eks-efs-${var.uat_kube_namespace}-nimble-mssqldb-data-access-point"
+    Cost        = var.cost_tag
+    Environment = var.environment
+  }
+}
+
+resource "aws_efs_access_point" "eks-efs-uat-nimble-mssqldb-baseline-access-point" {
+  file_system_id = aws_efs_file_system.eks-efs.id
+  root_directory {
+    path = "/nimble${var.uat_kube_namespace}/mssqldb/baseline"
+    creation_info {
+      owner_gid   = 999
+      owner_uid   = 999
+      permissions = 755
+    }
+  }
+  posix_user {
+    gid = 999
+    uid = 999
+  }
+  tags = {
+    Name        = "eks-efs-${var.uat_kube_namespace}-nimbledev-mssqldb-baseline-access-point"
+    Cost        = var.cost_tag
+    Environment = var.environment
+  }
+}
+
+# Nimble UAT SLAVE LICENCE
+resource "aws_efs_access_point" "eks-efs-uat-nimbleslave1-license-access-point" {
+  file_system_id = aws_efs_file_system.eks-efs.id
+  root_directory {
+    path = "/nimble/slave1/${var.uat_kube_namespace}/license"
+    creation_info {
+      owner_gid   = 999
+      owner_uid   = 999
+      permissions = 755
+    }
+  }
+  posix_user {
+    gid = 999
+    uid = 999
+  }
+  tags = {
+    Name        = "eks-efs-${var.uat_kube_namespace}-nimbleslave1-license-access-point"
+    Cost        = var.cost_tag
+    Environment = var.environment
+  }
+}
+
+resource "aws_efs_access_point" "eks-efs-uat-nimbleslave2-license-access-point" {
+  file_system_id = aws_efs_file_system.eks-efs.id
+  root_directory {
+    path = "/nimble/slave2/${var.uat_kube_namespace}/license"
+    creation_info {
+      owner_gid   = 999
+      owner_uid   = 999
+      permissions = 755
+    }
+  }
+  posix_user {
+    gid = 999
+    uid = 999
+  }
+  tags = {
+    Name        = "eks-efs-${var.uat_kube_namespace}-nimbleslave2-license-access-point"
     Cost        = var.cost_tag
     Environment = var.environment
   }

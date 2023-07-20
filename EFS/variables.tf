@@ -328,6 +328,12 @@ variable "dev_kube_namespace" {
   default = "dev"
 }
 
+variable "uat_kube_namespace" {
+  type = string
+  description = "Name of the kubernetes namespace which is used before applying changes in final env namespace"
+  default = "uat"
+}
+
 # variable "alblogs_s3_prefix" {
 #   type = list(string)
 #   description = "List of s3 prefixes for all the albs in which their log files will be created"
