@@ -1,0 +1,17 @@
+serviceAccount:
+  create: false
+  name: aws-load-balancer-controller
+
+rbac:
+  # Specifies whether rbac resources should be created
+  create: true
+
+# Enable cert-manager
+enableCertManager: false
+
+# The ingress class this controller will satisfy. If not specified, controller will match all
+# ingresses without ingress class annotation and ingresses of type alb
+ingressClass: alb
+
+# The AWS region for the kubernetes cluster. Set to use KIAM or kube2iam for example.
+region: us-east-1
