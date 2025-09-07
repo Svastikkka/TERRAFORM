@@ -17,4 +17,6 @@ Folder Structure
 ├── GCP
     ├── gcp-vm
     └── gcp-vpc
+    ├── gcp-gke
+
 ```
