@@ -24,13 +24,13 @@ terraform plan \
   -var="project_id=<PROJECT_ID>" \
   -var="region=<REGION>" \
   -var="zone=<REGION>-a" \
-  -var="network=voicing-dev-network" \
+  -var="network=fabric-dev-network" \
   -var="instance_name=vm-testing" \
   -var="machine_type=e2-medium" \
   -var="disk_image=debian-cloud/debian-11" \
   -var="disk_size=100" \
   -var="startup_script_path=./startup.sh" \
-  -var='tags=["voicing-ai", "dev"]'
+  -var='tags=["fabric-ai", "dev"]'
 ```
 
 ```bash
@@ -38,13 +38,13 @@ terraform apply \
   -var="project_id=<PROJECT_ID>" \
   -var="region=<REGION>" \
   -var="zone=<REGION>-a" \
-  -var="network=voicing-dev-network" \
+  -var="network=fabric-dev-network" \
   -var="instance_name=vm-testing" \
   -var="machine_type=e2-medium" \
   -var="disk_image=debian-cloud/debian-11" \
   -var="disk_size=100" \
   -var="startup_script_path=./startup.sh" \
-  -var='tags=["voicing-ai", "dev"]'
+  -var='tags=["fabric-ai", "dev"]'
 ```
 
 ```bash
@@ -52,11 +52,11 @@ terraform destroy \
   -var="project_id=<PROJECT_ID>" \
   -var="region=<REGION>" \
   -var="zone=<REGION>-a" \
-  -var="network=voicing-dev-network" \
+  -var="network=fabric-dev-network" \
   -var="instance_name=vm-testing" \
   -var="machine_type=e2-medium" \
   -var="disk_image=debian-cloud/debian-11" \
   -var="disk_size=100" \
   -var="startup_script_path=./startup.sh" \
-  -var='tags=["voicing-ai", "dev"]'
+  -var='tags=["fabric-ai", "dev"]'
 ```
