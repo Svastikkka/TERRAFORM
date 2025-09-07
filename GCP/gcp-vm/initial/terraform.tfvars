@@ -6,4 +6,4 @@ instance_name      = "demo-vm"
 machine_type       = "e2-medium"
 disk_image         = "debian-cloud/debian-11"
 startup_script_path = "./startup.sh"
-tags = [ "fabric-ai", "dev" ]
+tags = [ "fabric", "dev" ]

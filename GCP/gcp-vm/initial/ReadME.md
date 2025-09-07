@@ -30,7 +30,7 @@ terraform plan \
   -var="disk_image=debian-cloud/debian-11" \
   -var="disk_size=100" \
   -var="startup_script_path=./startup.sh" \
-  -var='tags=["fabric-ai", "dev"]'
+  -var='tags=["fabric", "dev"]'
 ```
 
 ```bash
@@ -44,7 +44,7 @@ terraform apply \
   -var="disk_image=debian-cloud/debian-11" \
   -var="disk_size=100" \
   -var="startup_script_path=./startup.sh" \
-  -var='tags=["fabric-ai", "dev"]'
+  -var='tags=["fabric", "dev"]'
 ```
 
 ```bash
@@ -58,5 +58,5 @@ terraform destroy \
   -var="disk_image=debian-cloud/debian-11" \
   -var="disk_size=100" \
   -var="startup_script_path=./startup.sh" \
-  -var='tags=["fabric-ai", "dev"]'
+  -var='tags=["fabric", "dev"]'
 ```

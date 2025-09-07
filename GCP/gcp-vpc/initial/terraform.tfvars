@@ -5,6 +5,6 @@
 # vpc_name           = "fabric-dev-vpc"
 # subnet_name        = "fabric-dev-subnet"
 # subnet_ip_range    = "10.0.0.0/24"
-# tags               = [ "fabric-ai", "dev" ]
+# tags               = [ "fabric", "dev" ]
 
 

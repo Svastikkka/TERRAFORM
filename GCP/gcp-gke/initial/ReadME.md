@@ -1,4 +1,4 @@
-# GCP Non Production VM Deployment
+# GCP Non Production GKE Deployment
 
 Following are the required steps to deploy terraform
 
@@ -14,7 +14,7 @@ gcloud auth application-default login
 
 ```bash
 terraform init \
-  -backend-config="key=<PATH>/terraform.tfstate" \
+  -backend-config="<PATH>/terraform.tfstate" \
   -reconfigure
 ```
 
@@ -28,6 +28,7 @@ terraform plan \
   -var="vpc_name=fabric-devlopment-vpc" \
   -var="subnet_name=fabric-devlopment-subnet" \
   -var="subnet_ip_range=10.0.0.0/24" \
+  -var="cluster_name=fabric-development" \
   -var='tags=["fabric", "dev"]'
 ```
 
@@ -40,6 +41,7 @@ terraform apply -var="project_id=<PROJECT_ID>" \
   -var="vpc_name=fabric-devlopment-vpc" \
   -var="subnet_name=fabric-devlopment-subnet" \
   -var="subnet_ip_range=10.0.0.0/24" \
+  -var="cluster_name=fabric-development" \
   -var='tags=["fabric", "dev"]'
 ```
 
@@ -57,5 +59,6 @@ terraform destroy \
   -var="vpc_name=fabric-devlopment-vpc" \
   -var="subnet_name=fabric-devlopment-subnet" \
   -var="subnet_ip_range=10.0.0.0/24" \
+  -var="cluster_name=fabric-development" \
   -var='tags=["fabric", "dev"]'
 ```
