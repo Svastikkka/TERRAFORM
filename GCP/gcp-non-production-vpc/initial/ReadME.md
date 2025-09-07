@@ -14,7 +14,7 @@ gcloud auth application-default login
 
 ```bash
 terraform init \
-  -backend-config="key=gcp-non-production-vpc/initial/terraform.tfstate" \
+  -backend-config="key=<PATH>/terraform.tfstate" \
   -reconfigure
 ```
 
