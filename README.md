@@ -1,6 +1,6 @@
 # Terraform
 
-Folder Structure
+### Folder Structure
 
 ```
 .
